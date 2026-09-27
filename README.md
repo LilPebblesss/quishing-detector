@@ -1,142 +1,141 @@
-# Quishing Detector — прототип за дипломна работа
+# Quishing Detector
 
-Инструмент (React PWA + FastAPI backend), който сканира QR кодове,
-анализира скритите зад тях URL-и (redirect chain + евристики +
-VirusTotal) и предупреждава потребителя за фишинг заплахи.
+A mobile application that detects Quishing (QR code phishing) attacks before the user opens the link.
 
-## Структура на проекта
+## Overview
+
+Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs. The victim scans the code with a phone and cannot see the destination URL before opening it. This application solves that problem by analyzing the URL hidden in the QR code and warning the user before they proceed.
+
+## Features
+
+- Scan QR codes using the phone camera
+- Upload QR code images from the gallery
+- Manually enter URLs for analysis
+- Follow the complete HTTP redirect chain
+- Apply a heuristic model with 7 weighted features
+- Optional VirusTotal API integration
+- Clear verdict: SAFE or DANGEROUS, with a numeric risk score
+- Display of all triggered heuristic features
+
+## Architecture
+
+The project consists of two parts:
+
+- **Backend** — Python FastAPI server that performs URL analysis
+- **Mobile app** — React Native (Expo) application for Android and iOS
+
+The mobile app sends the decoded URL to the backend. The backend analyzes it and returns a verdict. The mobile app displays the result.
+
+## Project structure
 
 ```
 quishing-detector/
 ├── backend/
-│   ├── api.py                 # FastAPI сървър, endpoint-и
-│   ├── qr_handler.py          # Декодиране на QR от изображение (OpenCV)
-│   ├── redirect_resolver.py   # Проследяване на HTTP redirect верига
-│   ├── heuristics.py          # Изчисляване на risk score (0-100)
-│   ├── virustotal_client.py   # Проверка във VirusTotal API v3
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/
+│   ├── api.py
+│   ├── heuristics.py
+│   ├── redirect_resolver.py
+│   ├── virustotal_client.py
+│   ├── qr_handler.py
+│   └── requirements.txt
+│
+└── quishing-mobile/
     ├── src/
-    │   ├── App.jsx             # Навигация (Home / Scan / Result / Dashboard)
-    │   ├── Scanner.jsx         # Камера + сканиране на QR (html5-qrcode)
-    │   ├── Result.jsx          # Показва резултата от анализа
-    │   ├── Dashboard.jsx       # Статистики (recharts) + история
-    │   ├── api.js               # axios заявки към backend
-    │   ├── storage.js           # localStorage история
-    │   ├── App.css / index.css
-    │   └── main.jsx
-    ├── index.html
-    ├── vite.config.js           # Vite + PWA конфигурация
+    │   ├── app/
+    │   └── lib/
     └── package.json
 ```
 
-## 1. Инсталация на backend
+## Installation
+
+### Backend
 
 ```bash
-cd quishing-detector/backend
-python3 -m venv venv
-source venv/bin/activate          # На Windows: venv\Scripts\activate
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### (По избор) VirusTotal API ключ
-
-Без ключ инструментът работи изцяло на база евристики (offline_fallback).
-За да включиш реална VirusTotal проверка:
-
-1. Регистрирай се безплатно: https://www.virustotal.com/gui/join-us
-2. Вземи API ключа си от профила
-3. Задай го като променлива на средата преди стартиране:
+Optional — set a VirusTotal API key:
 
 ```bash
-export VIRUSTOTAL_API_KEY="твоя_ключ_тук"     # На Windows (PowerShell): $env:VIRUSTOTAL_API_KEY="твоя_ключ"
+export VIRUSTOTAL_API_KEY="your_key_here"
 ```
 
-### Стартиране на backend
+Start the server:
 
 ```bash
-uvicorn api:app --reload --port 8000
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Провери, че работи: отвори http://localhost:8000/health — трябва да
-видиш `{"status": "ok", ...}`.
-
-## 2. Инсталация на frontend
-
-Отвори нов терминал:
+### Mobile app
 
 ```bash
-cd quishing-detector/frontend
+cd quishing-mobile
 npm install
-npm run dev
+npx expo start
 ```
 
-Отвори връзката, която Vite показва (обикновено http://localhost:5173).
+Scan the QR code shown in the terminal with the Expo Go app on your phone.
 
-> **Важно за камерата:** браузърите разрешават достъп до камера само през
-> HTTPS или `localhost`. На десктоп `localhost:5173` работи директно.
-> За тест на телефон в същата WiFi мрежа, ползвай `npm run dev -- --host`
-> и отвори `https://<IP>:5173` (може да се наложи self-signed сертификат
-> или туннел като ngrok/localtunnel).
+The phone and the computer must be on the same WiFi network. Set the computer's IP address in `src/lib/api.ts` instead of `localhost`.
 
-## 3. Как да тестваш
+## Detection logic
 
-### Ръчно въвеждане на URL (най-лесно за демонстрация)
+### Heuristic model
 
-На Home екрана въведи URL в полето и натисни "Провери":
+Each URL receives a risk score from 0 to 100, calculated from the following features:
 
-**Безопасни примери (би трябвало да излязат ЗЕЛЕНИ):**
-- `https://www.google.com`
-- `https://github.com`
-- `https://www.wikipedia.org`
-
-**Примери, които би трябвало да покачат risk score (ЧЕРВЕНИ или гранични):**
-- `http://192.168.1.1/login` — IP адрес + HTTP + ключова дума "login"
-- `http://example.com/secure-login-verify-account` — множество ключови думи + без HTTPS
-- `https://accounts.gooogle.com.verify-secure-login.xyz/reset-password` — дълбоки поддомейни + typosquatting + ключови думи
-- `http://bit.ly/somefakelink` — известен съкращавач (ще опита да го последва; ако линкът не съществува, ще хване грешка при resolve, което също е нормално поведение)
-
-### Сканиране с камера
-
-1. Генерирай QR код от произволен URL (напр. https://www.qr-code-generator.com/)
-2. Отвори приложението на телефона (виж бележката за HTTPS по-горе)
-3. Натисни "📷 Сканирай QR код" и насочи камерата към кода
-4. Приложението автоматично декодира и анализира
-
-### Качване на снимка с QR код (алтернатива на камерата)
-
-На Scan екрана използвай "📁 Избери снимка" — качи скрийншот или снимка
-с QR код, дори през десктоп браузър без камера.
-
-### Dashboard
-
-След няколко сканирания отвори "📊 Виж Dashboard" — ще видиш pie chart
-(malicious vs legitimate), bar chart с най-честите евристични признаци
-и таблица с последните 20 сканирания. "Изчисти история" нулира всичко
-(само в localStorage на текущия браузър).
-
-## Как работи risk score (heuristics.py)
-
-| Признак | Максимални точки |
+| Feature | Weight |
 |---|---|
-| Дължина на redirect веригата | 24 |
-| URL съкращавач | 10 |
-| IP адрес вместо домейн | 20 |
-| Липса на HTTPS | 8 |
-| Typosquatting (Levenshtein ≤ 2 до популярен домейн) | 25 |
-| Подозрителни ключови думи (login, verify, secure...) | 15 |
-| Прекомерна дълбочина на поддомейни (≥4) | 12 |
+| Redirect chain length | up to 24 |
+| URL shortener usage | 10 |
+| IP address as host | 20 |
+| Missing HTTPS | 8 |
+| Typosquatting (Levenshtein distance ≤ 2) | 25 |
+| Suspicious keywords (login, verify, secure, etc.) | up to 15 |
+| Excessive subdomain depth (≥ 4) | 12 |
 
-Праг за класификация: `score >= 40` → "malicious". Ако VirusTotal
-маркира URL-а, се добавят +30 точки към финалния score.
+A score of 25 or higher is classified as malicious.
 
-## Известни ограничения (нормални за учебен прототип)
+### Redirect chain analysis
 
-- Няма база данни — историята е само в localStorage на браузъра.
-- Няма автентикация/потребители (по твое изискване).
-- VirusTotal free tier има ограничение от заявки в минута — при много
-  тестове подред може да получиш rate-limit грешка (тогава автоматично
-  се използва offline_fallback).
-- html5-qrcode изисква камера с разрешение от браузъра; на desktop без
-  камера използвай качване на снимка.
+Quishing attacks often hide the final destination behind one or more redirects. The backend follows each HTTP 3xx hop and analyzes the complete chain, not just the first visible URL.
+
+### VirusTotal
+
+If a `VIRUSTOTAL_API_KEY` is provided, each URL is checked against 90+ antivirus engines. Without a key, the application runs in offline mode using only the heuristic model.
+
+## Test cases
+
+| URL | Expected result |
+|---|---|
+| `http://192.168.1.1/login` | DANGEROUS |
+| `http://paypa1-secure.com/login?verify=1` | DANGEROUS |
+| `https://accounts.google.com.verify-secure-login.xyz/reset` | DANGEROUS |
+| `https://www.google.com` | SAFE |
+
+## Limitations
+
+- The evaluation dataset is small (12 examples).
+- The free VirusTotal plan is limited to 4 requests per minute.
+- The heuristic model can be bypassed by carefully crafted URLs.
+- The typosquatting check covers a limited list of popular domains.
+
+## Future work
+
+- Replace fixed weights with a machine learning model.
+- Expand the popular domain list using the Tranco Top 1M.
+- Analyze the structural features of the QR code itself.
+- Integrate Google Safe Browsing.
+- Publish on Google Play.
+
+## Technologies
+
+**Backend:** Python 3.12, FastAPI, Uvicorn, OpenCV, requests, python-Levenshtein, tldextract
+
+**Mobile:** React Native, Expo, expo-camera, expo-image-picker, axios, TypeScript
+
+## License
+
+MIT
