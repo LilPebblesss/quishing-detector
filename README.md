@@ -4,7 +4,8 @@ A mobile application that detects Quishing (QR code phishing) attacks before the
 
 ## Overview
 
-Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs. The victim scans the code with a phone and cannot see the destination URL before opening it. This application solves that problem by analyzing the URL hidden in the QR code and warning the user before they proceed.
+Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs.
+Modern smartphones often display the destination URL before opening it, but they do not analyze whether that URL is safe. The user sees a link, but has no way to know if it leads to a phishing page or to a legitimate website. The app analyzes the URL hidden in the QR code - following redirect chains, applying heuristic rules and checking VirusTotal - it shows the user a clear verdict (Safe or Malicious) before they decide to open it.
 
 ## Features
 
@@ -21,8 +22,8 @@ Quishing is a phishing technique that uses QR codes to redirect victims to malic
 
 The project consists of two parts:
 
-- **Backend** — Python FastAPI server that performs URL analysis
-- **Mobile app** — React Native (Expo) application for Android and iOS
+- **Backend** - Python FastAPI server that performs URL analysis
+- **Mobile app** - React Native (Expo) application for Android and iOS
 
 The mobile app sends the decoded URL to the backend. The backend analyzes it and returns a verdict. The mobile app displays the result.
 
