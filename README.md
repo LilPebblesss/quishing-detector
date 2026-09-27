@@ -15,7 +15,7 @@ Modern smartphones often display the destination URL before opening it, but they
 - Follow the complete HTTP redirect chain
 - Apply a heuristic model with 7 weighted features
 - Optional VirusTotal API integration
-- Clear verdict: SAFE or DANGEROUS, with a numeric risk score
+- Clear verdict: Safe or Malicious, with a numeric risk score
 - Display of all triggered heuristic features
 
 ## Architecture
