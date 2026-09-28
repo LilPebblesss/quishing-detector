@@ -123,13 +123,6 @@ If a `VIRUSTOTAL_API_KEY` is provided, each URL is checked against 90+ antivirus
 - The heuristic model can be bypassed by carefully crafted URLs.
 - The typosquatting check covers a limited list of popular domains.
 
-## Future work
-
-- Replace fixed weights with a machine learning model.
-- Expand the popular domain list using the Tranco Top 1M.
-- Analyze the structural features of the QR code itself.
-- Integrate Google Safe Browsing.
-- Publish on Google Play.
 
 ## Technologies
 
