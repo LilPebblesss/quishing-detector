@@ -1,4 +1,4 @@
-// storage.ts — запазва историята на сканиранията на телефона
+// storage.ts — saves the scan history on the device
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEY = '@quishing_history';
@@ -10,7 +10,7 @@ export async function saveScan(scan: { url: string; verdict: string; score: numb
     history.unshift({ ...scan, timestamp: Date.now() });
     await AsyncStorage.setItem(KEY, JSON.stringify(history.slice(0, 50)));
   } catch (e) {
-    console.warn('Грешка при запазване:', e);
+    console.warn('Save error:', e);
   }
 }
 

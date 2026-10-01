@@ -1,8 +1,8 @@
 """
 heuristics.py
 -------------
-Изчислява risk score (0-100) за URL на база 7 евристични признака,
-характерни за quishing/фишинг атаки.
+Calculates a risk score (0-100) for a URL based on 7 heuristic indicators,
+characteristic for quishing/phishing attacks.
 """
 
 import re
@@ -13,7 +13,7 @@ import tldextract
 
 from redirect_resolver import KNOWN_SHORTENERS
 
-# --- Тегла на отделните признаци (максимален принос към score) ---
+
 WEIGHT_REDIRECT_CHAIN = 24
 WEIGHT_SHORTENER = 10
 WEIGHT_IP_ADDRESS = 20
@@ -22,7 +22,7 @@ WEIGHT_TYPOSQUATTING = 25
 WEIGHT_SUSPICIOUS_KEYWORDS = 15
 WEIGHT_DEEP_SUBDOMAIN = 12
 
-# Популярни домейни, спрямо които проверяваме typosquatting
+# Popular domains against which we check for typosquatting
 POPULAR_DOMAINS = [
     "google.com", "facebook.com", "instagram.com", "apple.com",
     "microsoft.com", "amazon.com", "paypal.com", "netflix.com",
@@ -31,13 +31,13 @@ POPULAR_DOMAINS = [
     "ebag.bg", "epay.bg", "cibank.bg",
 ]
 
-# Подозрителни ключови думи, характерни за фишинг URL-и
+# Suspicious keywords characteristic of phishing URLs
 SUSPICIOUS_KEYWORDS = [
     "login", "verify", "secure", "update", "confirm",
     "wallet", "reset-password", "signin", "account", "banking",
 ]
 
-# Regex за разпознаване на IPv4 адрес
+# Regex for detecting an IPv4 address
 IP_REGEX = re.compile(
     r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$"
 )
@@ -45,14 +45,14 @@ IP_REGEX = re.compile(
 
 def analyze(url: str, hop_count: int) -> dict:
     """
-    Изчислява risk score за URL на база евристики.
+    Calculates a risk score for a URL based on heuristics.
 
     Args:
-        url: URL-ът за анализ (крайният URL след redirects)
-        hop_count: брой пренасочвания, установени от redirect_resolver
+        url: The URL to analyze (the final URL after redirects)
+        hop_count: The number of redirects, as determined by redirect_resolver
 
     Returns:
-        речник с score, triggered_features (списък от описания) и details
+        A dictionary with the score, triggered_features (list of descriptions) and details
     """
     triggered_features = []
     details = {}
@@ -61,69 +61,69 @@ def analyze(url: str, hop_count: int) -> dict:
     parsed = urlparse(url)
     hostname = (parsed.hostname or "").lower()
 
-    # --- 1. Дължина на redirect веригата ---
+    
     chain_points = min(hop_count * 6, WEIGHT_REDIRECT_CHAIN)
     if chain_points > 0:
         score += chain_points
         triggered_features.append(
-            f"Дълга верига от пренасочвания ({hop_count} стъпки)"
+            f"Long redirect chain ({hop_count} steps)"
         )
     details["redirect_chain_points"] = chain_points
 
-    # --- 2. Използване на URL съкращавач ---
+    # --- 2. Use of URL shortener ---
     netloc_clean = hostname.replace("www.", "")
     used_shortener = netloc_clean in KNOWN_SHORTENERS
     if used_shortener:
         score += WEIGHT_SHORTENER
-        triggered_features.append("Използван е URL съкращавач")
+        triggered_features.append("URL shortener used")
     details["used_shortener"] = used_shortener
 
-    # --- 3. IP адрес вместо домейн ---
+    # --- 3. IP address instead of domain ---
     is_ip = bool(IP_REGEX.match(hostname))
     if is_ip:
         score += WEIGHT_IP_ADDRESS
-        triggered_features.append("IP адрес вместо име на домейн")
+        triggered_features.append("IP address instead of domain name")
     details["is_ip_address"] = is_ip
 
-    # --- 4. Липса на HTTPS ---
+    # --- 4. Lack of HTTPS ---
     no_https = parsed.scheme != "https"
     if no_https:
         score += WEIGHT_NO_HTTPS
-        triggered_features.append("Липсва HTTPS връзка")
+        triggered_features.append("Lack of HTTPS connection")
     details["no_https"] = no_https
 
-    # --- 5. Typosquatting (Levenshtein разстояние до популярни домейни) ---
+    # --- 5. Typosquatting (Levenshtein distance to popular domains) ---
     typo_match, typo_distance = _check_typosquatting(hostname)
     if typo_match:
         score += WEIGHT_TYPOSQUATTING
         triggered_features.append(
-            f"Възможен typosquatting на '{typo_match}' (разстояние {typo_distance})"
+            f"Possible typosquatting on '{typo_match}' (distance {typo_distance})"
         )
     details["typosquatting_target"] = typo_match
     details["typosquatting_distance"] = typo_distance
 
-    # --- 6. Подозрителни ключови думи в URL ---
+    # --- 6. Suspicious keywords in URL ---
     found_keywords = [kw for kw in SUSPICIOUS_KEYWORDS if kw in url.lower()]
     keyword_points = min(len(found_keywords) * 5, WEIGHT_SUSPICIOUS_KEYWORDS)
     if found_keywords:
         score += keyword_points
         triggered_features.append(
-            f"Подозрителни ключови думи: {', '.join(found_keywords)}"
+            f"Suspicious keywords: {', '.join(found_keywords)}"
         )
     details["suspicious_keywords"] = found_keywords
 
-    # --- 7. Прекомерна дълбочина на поддомейни ---
+    # --- 7. Excessive subdomain depth ---
     extracted = tldextract.extract(hostname)
     subdomain_depth = len(extracted.subdomain.split(".")) if extracted.subdomain else 0
     deep_subdomain = subdomain_depth >= 4
     if deep_subdomain:
         score += WEIGHT_DEEP_SUBDOMAIN
         triggered_features.append(
-            f"Прекомерна дълбочина на поддомейни ({subdomain_depth})"
+            f"Excessive subdomain depth ({subdomain_depth})"
         )
     details["subdomain_depth"] = subdomain_depth
 
-    # Ограничаваме score до 100
+    # --- 8. Limit score to 100 ---
     score = min(score, 100)
 
     return {
@@ -146,12 +146,12 @@ def _check_typosquatting(hostname: str):
 
     for popular in POPULAR_DOMAINS:
         if root_domain == popular:
-            # Точно съвпадение — легитимен домейн, не е typosquatting
+            # Exact match — legitimate domain, not typosquatting
             return None, None
 
         distance = Levenshtein.distance(root_domain, popular)
-        # Смятаме за подозрително, ако разстоянието е малко (1-2 символа),
-        # но домейнът не е идентичен — типично за typosquatting (напр. gooogle.com)
+        # We consider it suspicious if the distance is small (1-2 characters),
+        # but the domain is not identical — typical for typosquatting (e.g., gooogle.com)
         if distance <= 2 and (best_distance is None or distance < best_distance):
             best_match = popular
             best_distance = distance

@@ -1,19 +1,19 @@
 """
 redirect_resolver.py
 ---------------------
-Проследява веригата от HTTP пренасочвания (redirect chain) за даден URL,
-за да разкрие крайната дестинация преди потребителят да я посети.
+Follows the HTTP redirect chain for a given URL
+to reveal the final destination before the user visits it.
 """
 
 import requests
 
-# Timeout за всяка HTTP заявка (в секунди)
+# Timeout for each HTTP request (in seconds)
 REQUEST_TIMEOUT = 6
 
-# Максимален брой стъпки, за да избегнем безкрайни/твърде дълги вериги
+# Maximum number of steps, to avoid endless/too long chains
 MAX_HOPS = 15
 
-# Списък с популярни URL съкращавачи (за евристиката по-късно също се ползва)
+# List of popular URL shorteners (also used later by the heuristic)
 KNOWN_SHORTENERS = {
     "bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd",
     "buff.ly", "rebrand.ly", "cutt.ly", "shorturl.at", "rb.gy",
@@ -31,19 +31,19 @@ HEADERS = {
 
 def resolve_redirects(url: str) -> dict:
     """
-    Проследява всички пренасочвания за даден URL.
+    Follows all redirects for a given URL.
 
     Args:
-        url: началният URL, извлечен от QR кода
+        url: the initial URL, extracted from the QR code
 
     Returns:
-        речник с:
-            original_url: подаденият URL
-            hops: списък от речници {url, status_code}
-            final_url: крайният URL след всички пренасочвания
-            hop_count: брой пренасочвания
-            used_shortener: дали началният домейн е известен съкращавач
-            error: съобщение за грешка (или None)
+        a dictionary with:
+            original_url: the submitted URL
+            hops: list of dictionaries {url, status_code}
+            final_url: the final URL after all redirects
+            hop_count: number of redirects
+            used_shortener: whether the initial domain is a known shortener
+            error: error message (or None)
     """
     result = {
         "original_url": url,
@@ -60,12 +60,12 @@ def resolve_redirects(url: str) -> dict:
     try:
         for _ in range(MAX_HOPS):
             if current_url in visited:
-                # Открит е цикъл от пренасочвания — спираме
-                result["error"] = "Открит е цикъл от пренасочвания."
+                # A redirect loop has been detected — stop
+                result["error"] = "A redirect loop was detected."
                 break
             visited.add(current_url)
 
-            # allow_redirects=False, за да хващаме всяка стъпка поотделно
+            # allow_redirects=False, so that we catch each step separately
             response = requests.get(
                 current_url,
                 headers=HEADERS,
@@ -84,10 +84,10 @@ def resolve_redirects(url: str) -> dict:
                 location = response.headers.get("Location")
                 if not location:
                     break
-                # Location може да е относителен път — правим го абсолютен
+                # Location may be a relative path — make it absolute
                 current_url = requests.compat.urljoin(current_url, location)
             else:
-                # Няма повече пренасочвания — това е крайният URL
+                # No more redirects — this is the final URL
                 break
 
         result["final_url"] = current_url
@@ -96,23 +96,23 @@ def resolve_redirects(url: str) -> dict:
             result["hop_count"] = 0
 
     except requests.exceptions.Timeout:
-        result["error"] = "Времето за изчакване изтече при опит за връзка с URL-а."
+        result["error"] = "The request timed out while connecting to the URL."
         result["final_url"] = current_url
     except requests.exceptions.SSLError:
-        result["error"] = "SSL грешка — сертификатът на сайта е невалиден."
+        result["error"] = "SSL error — the site's certificate is invalid."
         result["final_url"] = current_url
     except requests.exceptions.ConnectionError:
-        result["error"] = "Неуспешна връзка с целевия сървър (възможно е да не съществува)."
+        result["error"] = "Failed to connect to the target server (it may not exist)."
         result["final_url"] = current_url
     except requests.exceptions.RequestException as exc:
-        result["error"] = f"Грешка при заявката: {str(exc)}"
+        result["error"] = f"Request error: {str(exc)}"
         result["final_url"] = current_url
 
     return result
 
 
 def _is_shortener(url: str) -> bool:
-    """Проверява дали домейнът на URL-а е известен съкращавач на връзки."""
+    """Checks whether the domain of the URL is a known link shortener."""
     try:
         from urllib.parse import urlparse
         netloc = urlparse(url).netloc.lower()

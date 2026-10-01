@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const [result, setResult] = useState<any>(null);
   const [urlInput, setUrlInput] = useState('');
 
-  // Сканиран QR код
+  // Scanned QR code
   const handleBarcodeScanned = ({ data }: { data: string }) => {
     if (loading || showModal) return;
     setScanning(false);
@@ -25,7 +25,7 @@ export default function HomeScreen() {
     runAnalysis(data);
   };
 
-  // Анализ
+  // Analysis
   const runAnalysis = async (url: string) => {
     setShowModal(true);
     setLoading(true);
@@ -34,23 +34,23 @@ export default function HomeScreen() {
       const res = await analyzeUrl(url);
       setResult(res);
     } catch (err: any) {
-      setResult({ error: 'Грешка: ' + (err.message || 'неуспешна заявка') });
+      setResult({ error: 'Error: ' + (err.message || 'request failed') });
     }
     setLoading(false);
   };
 
-  // Ръчно въвеждане
+  // Manual entry
   const handleManual = () => {
     if (!urlInput.trim()) return;
     setScannedUrl(urlInput.trim());
     runAnalysis(urlInput.trim());
   };
 
-  // Избор от галерията
+  // Picking from the gallery
   const handlePickImage = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Нужно е разрешение за галерията');
+      Alert.alert('Gallery permission is required');
       return;
     }
     const picked = await ImagePicker.launchImageLibraryAsync({
@@ -71,7 +71,7 @@ export default function HomeScreen() {
         setResult(res);
       }
     } catch (err: any) {
-      setResult({ error: 'Грешка: ' + (err.message || 'неуспешно качване') });
+      setResult({ error: 'Error: ' + (err.message || 'upload failed') });
     }
     setLoading(false);
   };
@@ -83,14 +83,14 @@ export default function HomeScreen() {
     setUrlInput('');
   };
 
-  // --- Камера ---
+  // --- Camera ---
   if (scanning) {
     if (!permission?.granted) {
       return (
         <View style={styles.center}>
-          <Text style={styles.permText}>Нужно е разрешение за камерата</Text>
+          <Text style={styles.permText}>Camera permission is required</Text>
           <TouchableOpacity style={styles.btn} onPress={requestPermission}>
-            <Text style={styles.btnText}>Разреши</Text>
+            <Text style={styles.btnText}>Allow</Text>
           </TouchableOpacity>
         </View>
       );
@@ -105,19 +105,19 @@ export default function HomeScreen() {
         />
         <View style={styles.overlay}>
           <View style={styles.scanFrame} />
-          <Text style={styles.scanHint}>Насочи към QR код</Text>
+          <Text style={styles.scanHint}>Point at a QR code</Text>
         </View>
         <TouchableOpacity style={styles.cancelBtn} onPress={() => setScanning(false)}>
-          <Text style={styles.cancelText}>✕ Затвори</Text>
+          <Text style={styles.cancelText}>✕ Close</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // --- Начален екран ---
+  // --- Home screen ---
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Провери QR кода, преди да го отвориш</Text>
+      <Text style={styles.title}>Check the QR code before you open it</Text>
 
       <TouchableOpacity
         style={styles.scanBtn}
@@ -126,14 +126,14 @@ export default function HomeScreen() {
           setScanning(true);
         }}
       >
-        <Text style={styles.scanBtnText}>📷 Сканирай QR код</Text>
+        <Text style={styles.scanBtnText}>📷 Scan QR code</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.secondaryBtn} onPress={handlePickImage}>
-        <Text style={styles.secondaryBtnText}>📁 Избери снимка</Text>
+        <Text style={styles.secondaryBtnText}>📁 Choose image</Text>
       </TouchableOpacity>
 
-      <Text style={styles.divider}>— или въведи URL ръчно —</Text>
+      <Text style={styles.divider}>— or enter a URL manually —</Text>
 
       <TextInput
         style={styles.input}
@@ -144,14 +144,14 @@ export default function HomeScreen() {
         autoCorrect={false}
       />
       <TouchableOpacity style={styles.btn} onPress={handleManual}>
-        <Text style={styles.btnText}>Анализирай</Text>
+        <Text style={styles.btnText}>Analyze</Text>
       </TouchableOpacity>
 
-      {/* Резултат */}
+      {/* Result */}
       <Modal visible={showModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Сканиран URL:</Text>
+            <Text style={styles.modalTitle}>Scanned URL:</Text>
             <Text style={styles.modalUrl} numberOfLines={3}>
               {result?.original_url || scannedUrl || '—'}
             </Text>
@@ -159,7 +159,7 @@ export default function HomeScreen() {
             {loading && (
               <View style={{ alignItems: 'center', marginTop: 20 }}>
                 <ActivityIndicator size="large" color="#2563eb" />
-                <Text style={{ marginTop: 8, color: '#64748b' }}>Анализиране...</Text>
+                <Text style={{ marginTop: 8, color: '#64748b' }}>Analyzing...</Text>
               </View>
             )}
 
@@ -177,7 +177,7 @@ export default function HomeScreen() {
                     styles.verdictText,
                     { color: result.verdict === 'malicious' ? '#b91c1c' : '#047857' },
                   ]}>
-                    {result.verdict === 'malicious' ? '🚨 ОПАСНО' : '✅ БЕЗОПАСНО'}
+                    {result.verdict === 'malicious' ? '🚨 DANGEROUS' : '✅ SAFE'}
                   </Text>
                   <Text style={styles.verdictScore}>
                     Risk Score: {result.heuristics?.score ?? 0}/100
@@ -186,7 +186,7 @@ export default function HomeScreen() {
 
                 {result.heuristics?.triggered_features?.length > 0 && (
                   <View style={styles.features}>
-                    <Text style={styles.featuresTitle}>Задействани признаци:</Text>
+                    <Text style={styles.featuresTitle}>Triggered indicators:</Text>
                     {result.heuristics.triggered_features.map((f: string, i: number) => (
                       <Text key={i} style={styles.featureItem}>• {f}</Text>
                     ))}
@@ -196,7 +196,7 @@ export default function HomeScreen() {
                 {result.redirect?.hop_count > 0 && (
                   <View style={styles.features}>
                     <Text style={styles.featuresTitle}>
-                      Пренасочвания: {result.redirect.hop_count}
+                      Redirects: {result.redirect.hop_count}
                     </Text>
                   </View>
                 )}
@@ -204,7 +204,7 @@ export default function HomeScreen() {
             )}
 
             <TouchableOpacity style={styles.closeBtn} onPress={closeModal}>
-              <Text style={styles.closeBtnText}>Затвори</Text>
+              <Text style={styles.closeBtnText}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>

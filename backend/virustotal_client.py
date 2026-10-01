@@ -1,12 +1,12 @@
 """
 virustotal_client.py
 ---------------------
-Клиент за VirusTotal API v3 — проверява репутацията на URL спрямо
-десетки антивирусни/security engines.
+VirusTotal API v3 client — checks the reputation of a URL against
+dozens of antivirus/security engines.
 
-За да работи, е нужен VIRUSTOTAL_API_KEY (задава се като променлива
-на средата или директно в api.py). Ако няма ключ или няма интернет,
-се използва offline_fallback().
+It requires a VIRUSTOTAL_API_KEY (set as an environment variable
+or directly in api.py). If there is no key or no internet connection,
+offline_fallback() is used.
 """
 
 import base64
@@ -17,29 +17,29 @@ import requests
 VT_BASE_URL = "https://www.virustotal.com/api/v3/urls"
 REQUEST_TIMEOUT = 8
 
-# Ключът се чете от променлива на средата — НЕ го хардкодвай в кода
+# The key is read from an environment variable — do NOT hardcode it in the source
 API_KEY = os.environ.get("VIRUSTOTAL_API_KEY", "")
 
 
 def check_url(url: str) -> dict:
     """
-    Проверява URL във VirusTotal.
+    Checks a URL on VirusTotal.
 
     Args:
-        url: URL-ът за проверка
+        url: the URL to check
 
     Returns:
-        речник с:
-            malicious, suspicious, harmless, undetected: брой engines
-            total_engines: общ брой engines, дали са гласували
-            is_flagged: bool — дали е маркиран като заплаха
-            source: "virustotal" или "offline_fallback"
+        a dictionary with:
+            malicious, suspicious, harmless, undetected: engine counts
+            total_engines: total number of engines, whether they have voted
+            is_flagged: bool — whether it is flagged as a threat
+            source: "virustotal" or "offline_fallback"
     """
     if not API_KEY:
-        return offline_fallback("Липсва VIRUSTOTAL_API_KEY — работи се в офлайн режим.")
+        return offline_fallback("VIRUSTOTAL_API_KEY is missing — running in offline mode.")
 
     try:
-        # VirusTotal изисква URL-ID = base64(url) без padding ('=')
+        # VirusTotal requires URL-ID = base64(url) without padding ('=')
         url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
 
         response = requests.get(
@@ -49,7 +49,7 @@ def check_url(url: str) -> dict:
         )
 
         if response.status_code == 404:
-            # URL-ът не е бил анализиран досега от VirusTotal
+            # The URL has not been analysed by VirusTotal before
             return {
                 "malicious": 0,
                 "suspicious": 0,
@@ -58,7 +58,7 @@ def check_url(url: str) -> dict:
                 "total_engines": 0,
                 "is_flagged": False,
                 "source": "virustotal",
-                "note": "URL-ът не е намерен в базата на VirusTotal (все още неанализиран).",
+                "note": "The URL was not found in the VirusTotal database (not analysed yet).",
             }
 
         response.raise_for_status()
@@ -87,14 +87,14 @@ def check_url(url: str) -> dict:
         }
 
     except requests.exceptions.RequestException as exc:
-        return offline_fallback(f"Грешка при връзка с VirusTotal: {str(exc)}")
+        return offline_fallback(f"Error while connecting to VirusTotal: {str(exc)}")
 
 
-def offline_fallback(reason: str = "Няма достъп до VirusTotal.") -> dict:
+def offline_fallback(reason: str = "No access to VirusTotal.") -> dict:
     """
-    Връща неутрален резултат, когато VirusTotal е недостъпен
-    (без интернет, без API ключ, или грешка в заявката).
-    Крайното решение тогава се основава само на евристиките.
+    Returns a neutral result when VirusTotal is unavailable
+    (no internet, no API key, or a request error).
+    The final decision is then based only on the heuristics.
     """
     return {
         "malicious": 0,

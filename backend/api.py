@@ -1,11 +1,4 @@
-"""
-api.py
-------
-FastAPI сървър, който обединява всички модули и излага REST endpoint-и
-за анализ на URL-и и QR кодове.
 
-Стартиране: uvicorn api:app --reload --port 8000
-"""
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,11 +11,11 @@ from redirect_resolver import resolve_redirects
 
 app = FastAPI(
     title="Quishing Detector API",
-    description="Backend за анализ на QR кодове и откриване на quishing атаки.",
+    description="Backend for the Quishing Detector project — analyzes URLs and QR codes for phishing risks.",
     version="1.0.0",
 )
 
-# CORS — позволяваме заявки от локалния React dev сървър
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -42,25 +35,25 @@ class AnalyzeRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    """Проверява дали сървърът работи."""
+    """Checks if the server is running."""
     return {"status": "ok", "service": "quishing-detector-backend"}
 
 
 @app.post("/analyze")
 def analyze_url(payload: AnalyzeRequest):
     """
-    Анализира подаден URL:
-    1. Проследява redirect веригата
-    2. Изчислява евристичен risk score
-    3. Проверява във VirusTotal (освен ако offline=True)
-    4. Връща обединен резултат
+    Analyses a submitted URL:
+    1. Traces the redirect chain
+    2. Calculates a heuristic risk score
+    3. Checks against VirusTotal (unless offline=True)
+    4. Returns the combined result
     """
     url = payload.url.strip()
     if not url:
-        raise HTTPException(status_code=400, detail="URL-ът не може да бъде празен.")
+        raise HTTPException(status_code=400, detail="URL cannot be empty.")
 
     if not (url.startswith("http://") or url.startswith("https://")):
-        url = "http://" + url  # ако липсва схема, приемаме http по подразбиране
+        url = "http://" + url  # if no scheme is present, assume http by default
 
     return _run_full_analysis(url, offline=payload.offline)
 
@@ -68,8 +61,9 @@ def analyze_url(payload: AnalyzeRequest):
 @app.post("/analyze-qr")
 async def analyze_qr(file: UploadFile = File(...), offline: bool = False):
     """
-    Приема качено изображение с QR код, декодира го и пуска
-    същия пълен анализ като /analyze.
+    Analyses an uploaded QR code image:
+    1. Decodes the QR code
+    2. Runs the full analysis like /analyze
     """
     image_bytes = await file.read()
 
@@ -81,25 +75,25 @@ async def analyze_qr(file: UploadFile = File(...), offline: bool = False):
     if not (decoded_url.startswith("http://") or decoded_url.startswith("https://")):
         raise HTTPException(
             status_code=422,
-            detail=f"QR кодът не съдържа валиден URL (съдържание: '{decoded_url}').",
+            detail=f"QR code does not contain a valid URL (content: '{decoded_url}').",
         )
 
     return _run_full_analysis(decoded_url, offline=offline)
 
 
 def _run_full_analysis(url: str, offline: bool) -> dict:
-    """Обща логика за пълен анализ — използва се от двата endpoint-а."""
+    """General logic for full analysis — used by both endpoints."""
     redirect_data = resolve_redirects(url)
     final_url = redirect_data["final_url"]
 
     heuristic_result = heuristics.analyze(final_url, redirect_data["hop_count"])
 
     if offline:
-        vt_result = virustotal_client.offline_fallback("Офлайн режим — VirusTotal пропуснат по избор.")
+        vt_result = virustotal_client.offline_fallback("Offline mode — VirusTotal skipped by choice.")
     else:
         vt_result = virustotal_client.check_url(final_url)
 
-    # Ако VirusTotal маркира URL-а, добавяме бонус точки към score
+    # If VirusTotal flags the URL, we add bonus points to the score
     score = heuristic_result["score"]
     if vt_result.get("is_flagged"):
         score = min(score + 30, 100)

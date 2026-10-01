@@ -1,7 +1,7 @@
-// api.ts — заявки към Python backend-а
+// api.ts — requests to the Python backend
 import axios from 'axios';
 
-// ВАЖНО: IP-то на твоя лаптоп
+// IMPORTANT: your laptop's IP address
 const API_URL = 'http://192.168.1.32:8000';
 
 const client = axios.create({
