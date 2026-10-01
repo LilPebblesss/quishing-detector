@@ -4,7 +4,8 @@ A mobile application that detects Quishing (QR code phishing) attacks before the
 
 ## Overview
 
-Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs. The victim scans the code with a phone and cannot see the destination URL before opening it. This application solves that problem by analyzing the URL hidden in the QR code and warning the user before they proceed.
+Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs.
+Modern smartphones often display the destination URL before opening it, but they do not analyze whether that URL is safe. The user sees a link, but has no way to know if it leads to a phishing page or to a legitimate website. The app analyzes the URL hidden in the QR code - following redirect chains, applying heuristic rules and checking VirusTotal - it shows the user a clear verdict (Safe or Malicious) before they decide to open it.
 
 ## Features
 
@@ -14,15 +15,15 @@ Quishing is a phishing technique that uses QR codes to redirect victims to malic
 - Follow the complete HTTP redirect chain
 - Apply a heuristic model with 7 weighted features
 - Optional VirusTotal API integration
-- Clear verdict: SAFE or DANGEROUS, with a numeric risk score
+- Clear verdict: Safe or Malicious, with a numeric risk score
 - Display of all triggered heuristic features
 
 ## Architecture
 
 The project consists of two parts:
 
-- **Backend** — Python FastAPI server that performs URL analysis
-- **Mobile app** — React Native (Expo) application for Android and iOS
+- **Backend** - Python FastAPI server that performs URL analysis
+- **Mobile app** - React Native (Expo) application for Android and iOS
 
 The mobile app sends the decoded URL to the backend. The backend analyzes it and returns a verdict. The mobile app displays the result.
 
@@ -122,13 +123,6 @@ If a `VIRUSTOTAL_API_KEY` is provided, each URL is checked against 90+ antivirus
 - The heuristic model can be bypassed by carefully crafted URLs.
 - The typosquatting check covers a limited list of popular domains.
 
-## Future work
-
-- Replace fixed weights with a machine learning model.
-- Expand the popular domain list using the Tranco Top 1M.
-- Analyze the structural features of the QR code itself.
-- Integrate Google Safe Browsing.
-- Publish on Google Play.
 
 ## Technologies
 
