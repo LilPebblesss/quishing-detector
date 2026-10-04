@@ -22,7 +22,7 @@ WEIGHT_TYPOSQUATTING = 25
 WEIGHT_SUSPICIOUS_KEYWORDS = 15
 WEIGHT_DEEP_SUBDOMAIN = 12
 
-# Popular domains against which we check for typosquatting
+# Popular domains, with which we check for typosquatting
 POPULAR_DOMAINS = [
     "google.com", "facebook.com", "instagram.com", "apple.com",
     "microsoft.com", "amazon.com", "paypal.com", "netflix.com",
@@ -31,13 +31,13 @@ POPULAR_DOMAINS = [
     "ebag.bg", "epay.bg", "cibank.bg",
 ]
 
-# Suspicious keywords characteristic of phishing URLs
+# Suspicious keywords, characteristic for phishing URLs
 SUSPICIOUS_KEYWORDS = [
     "login", "verify", "secure", "update", "confirm",
     "wallet", "reset-password", "signin", "account", "banking",
 ]
 
-# Regex for detecting an IPv4 address
+# Regex for recognizing IPv4 addresses
 IP_REGEX = re.compile(
     r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$"
 )
@@ -61,7 +61,7 @@ def analyze(url: str, hop_count: int) -> dict:
     parsed = urlparse(url)
     hostname = (parsed.hostname or "").lower()
 
-    
+    # --- 1. Long redirect chain ---
     chain_points = min(hop_count * 6, WEIGHT_REDIRECT_CHAIN)
     if chain_points > 0:
         score += chain_points
@@ -93,17 +93,22 @@ def analyze(url: str, hop_count: int) -> dict:
     details["no_https"] = no_https
 
     # --- 5. Typosquatting (Levenshtein distance to popular domains) ---
-    typo_match, typo_distance = _check_typosquatting(hostname)
+    typo_match, typo_distance, typo_reason = _check_typosquatting(hostname)
     if typo_match:
         score += WEIGHT_TYPOSQUATTING
         triggered_features.append(
-            f"Possible typosquatting on '{typo_match}' (distance {typo_distance})"
+            f"Possible typosquatting on '{typo_match}' ({typo_reason or f'distance {typo_distance}'})"
         )
     details["typosquatting_target"] = typo_match
     details["typosquatting_distance"] = typo_distance
+    details["typosquatting_reason"] = typo_reason
 
-    # --- 6. Suspicious keywords in URL ---
-    found_keywords = [kw for kw in SUSPICIOUS_KEYWORDS if kw in url.lower()]
+    # --- 6. Suspicious keywords in the path/query ---
+    # Only the path and query count. Matching the whole URL would flag a
+    # legitimate host like secure.mycompany.com/account/login/verify/update
+    # as malicious just because the real domain contains those words.
+    haystack = f"{parsed.path}?{parsed.query}".lower()
+    found_keywords = [kw for kw in SUSPICIOUS_KEYWORDS if kw in haystack]
     keyword_points = min(len(found_keywords) * 5, WEIGHT_SUSPICIOUS_KEYWORDS)
     if found_keywords:
         score += keyword_points
@@ -134,9 +139,15 @@ def analyze(url: str, hop_count: int) -> dict:
 
 
 def _check_typosquatting(hostname: str):
- 
+    """
+    Looks for an impersonated brand in three ways, returning the first hit as
+    (popular_domain, distance, reason) — or (None, None, None) if none match.
+
+    Comparing only the full registrable domain misses the common variants, so
+    we also compare individual labels and the subdomain part.
+    """
     if not hostname:
-        return None, None
+        return None, None, None
 
     extracted = tldextract.extract(hostname)
     root_domain = f"{extracted.domain}.{extracted.suffix}" if extracted.suffix else hostname
@@ -147,16 +158,32 @@ def _check_typosquatting(hostname: str):
     for popular in POPULAR_DOMAINS:
         if root_domain == popular:
             # Exact match — legitimate domain, not typosquatting
-            return None, None
+            return None, None, None
 
-        distance = Levenshtein.distance(root_domain, popular)
-        # We consider it suspicious if the distance is small (1-2 characters),
-        # but the domain is not identical — typical for typosquatting (e.g., gooogle.com)
-        if distance <= 2 and (best_distance is None or distance < best_distance):
-            best_match = popular
-            best_distance = distance
+        popular_label = popular.split(".")[0]
 
-    return best_match, best_distance
+        # 1. A misspelled label, e.g. gooogle.com / paypa1-secure.com.
+        #    Each dot- and dash-separated token is compared on its own so that a
+        #    padded label like "paypa1-secure" is still caught.
+        for token in re.split(r"[.-]", extracted.domain):
+            if not token or token == popular_label:
+                continue
+            distance = Levenshtein.distance(token, popular_label)
+            # Suspicious if the distance is small (1-2 characters) but the
+            # label is not identical — typical of typosquatting.
+            if distance <= 2 and (best_distance is None or distance < best_distance):
+                best_match = popular
+                best_distance = distance
+
+        # 2. The brand smuggled into the subdomain of another domain,
+        #    e.g. accounts.google.com.verify-secure-login.xyz
+        if extracted.subdomain and popular in f"{extracted.subdomain}.{extracted.suffix}":
+            return popular, 0, "brand name in the subdomain of a different domain"
+
+    if best_match is not None:
+        return best_match, best_distance, None
+
+    return None, None, None
 
 
 def classify(score: int, threshold: int = 25) -> str:

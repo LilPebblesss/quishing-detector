@@ -41,8 +41,8 @@ quishing-detector/
 │
 └── quishing-mobile/
     ├── src/
-    │   ├── app/
-    │   └── lib/
+    │   ├── app/          # index.tsx (main screen), _layout.tsx (header)
+    │   └── lib/          # api.ts (HTTP), styles.ts
     └── package.json
 ```
 
@@ -79,7 +79,10 @@ npx expo start
 
 Scan the QR code shown in the terminal with the Expo Go app on your phone.
 
-The phone and the computer must be on the same WiFi network. Set the computer's IP address in `src/lib/api.ts` instead of `localhost`.
+The phone and the computer must be on the same WiFi network. Set
+`EXPO_PUBLIC_API_URL` in `quishing-mobile/.env` to your computer's LAN address
+(for example `http://192.168.1.32:8000`) — `localhost` will not work, because
+the phone resolves it to itself.
 
 ## Detection logic
 
@@ -93,11 +96,16 @@ Each URL receives a risk score from 0 to 100, calculated from the following feat
 | URL shortener usage | 10 |
 | IP address as host | 20 |
 | Missing HTTPS | 8 |
-| Typosquatting (Levenshtein distance ≤ 2) | 25 |
+| Typosquatting (misspelled label, or brand name in the subdomain) | 25 |
 | Suspicious keywords (login, verify, secure, etc.) | up to 15 |
 | Excessive subdomain depth (≥ 4) | 12 |
 
 A score of 25 or higher is classified as malicious.
+
+Suspicious keywords are matched against the **path and query only**, never the
+host — otherwise a legitimate URL such as
+`https://secure.mycompany.com/account/login/verify/update` would be reported
+as malicious just because the real domain contains those words.
 
 ### Redirect chain analysis
 
