@@ -170,7 +170,7 @@ def _check_typosquatting(hostname: str):
                 continue
             distance = Levenshtein.distance(token, popular_label)
             # Suspicious if the distance is small (1-2 characters) but the
-            # label is not identical — typical of typosquatting.
+            # label is not identical - typical of typosquatting.
             if distance <= 2 and (best_distance is None or distance < best_distance):
                 best_match = popular
                 best_distance = distance
@@ -186,5 +186,5 @@ def _check_typosquatting(hostname: str):
     return None, None, None
 
 
-def classify(score: int, threshold: int = 25) -> str:
+def classify(score: int, threshold: int = 20) -> str:
     return "malicious" if score >= threshold else "legitimate"

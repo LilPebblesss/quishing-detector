@@ -5,10 +5,13 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { analyzeUrl, analyzeQrImage } from '../lib/api';
-import { styles } from '../lib/styles';
+import { monoLabel, styles, theme } from '../lib/styles';
+import { Arrow, QrLogo, ScanFrame } from '../components/scanner-art';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,8 +36,11 @@ export default function HomeScreen() {
     try {
       const res = await analyzeUrl(url);
       setResult(res);
-    } catch (err: any) {
-      setResult({ error: 'Error: ' + (err.message || 'request failed') });
+     } catch (err: any) {
+      const isTimeout = err?.code === 'ECONNABORTED';
+      setResult({
+        error: 'Error: ' + (isTimeout ? 'the server took too long to respond.' : err.message || 'request failed'),
+      });
     }
     setLoading(false);
   };
@@ -71,7 +77,10 @@ export default function HomeScreen() {
         setResult(res);
       }
     } catch (err: any) {
-      setResult({ error: 'Error: ' + (err.message || 'upload failed') });
+      const isTimeout = err?.code === 'ECONNABORTED';
+      setResult({
+        error: 'Error: ' + (isTimeout ? 'the server took too long to respond.' : err.message || 'upload failed'),
+      });
     }
     setLoading(false);
   };
@@ -88,127 +97,215 @@ export default function HomeScreen() {
     if (!permission?.granted) {
       return (
         <View style={styles.center}>
-          <Text style={styles.permText}>Camera permission is required</Text>
-          <TouchableOpacity style={styles.btn} onPress={requestPermission}>
-            <Text style={styles.btnText}>Allow</Text>
+          <Text style={styles.permText}>
+            Camera permission is required{'\n'}to scan QR codes.
+          </Text>
+          <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
+            <Text style={styles.permBtnText}>ALLOW CAMERA</Text>
           </TouchableOpacity>
         </View>
       );
     }
     return (
-      <View style={{ flex: 1 }}>
+      <View style={styles.cameraScreen}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={handleBarcodeScanned}
         />
-        <View style={styles.overlay}>
-          <View style={styles.scanFrame} />
-          <Text style={styles.scanHint}>Point at a QR code</Text>
+        <View style={styles.cameraOverlay}>
+          <View style={styles.cameraFrame}>
+            <ScanFrame />
+          </View>
+          <View style={styles.cameraBottom}>
+            <Text style={styles.cameraHint}>POINT AT A QR CODE</Text>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => setScanning(false)}>
+              <Text style={styles.cancelText}>✕ CLOSE</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => setScanning(false)}>
-          <Text style={styles.cancelText}>✕ Close</Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
   // --- Home screen ---
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Check the QR code before you open it</Text>
-
-      <TouchableOpacity
-        style={styles.scanBtn}
-        onPress={() => {
-          if (!permission?.granted) requestPermission();
-          setScanning(true);
-        }}
+    <View style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 },
+        ]}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.scanBtnText}>📷 Scan QR code</Text>
-      </TouchableOpacity>
+        <View style={styles.header}>
+          <QrLogo size={28} />
+          <Text style={styles.brand}>QUISHING DETECTOR</Text>
+        </View>
 
-      <TouchableOpacity style={styles.secondaryBtn} onPress={handlePickImage}>
-        <Text style={styles.secondaryBtnText}>📁 Choose image</Text>
-      </TouchableOpacity>
+        <View style={styles.heroFrame}>
+          <ScanFrame />
+        </View>
 
-      <Text style={styles.divider}>— or enter a URL manually —</Text>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          activeOpacity={0.85}
+          onPress={() => {
+            if (!permission?.granted) requestPermission();
+            setScanning(true);
+          }}
+        >
+          <Text style={styles.primaryBtnText}>SCAN QR CODE</Text>
+        </TouchableOpacity>
 
-      <TextInput
-        style={styles.input}
-        placeholder="https://example.com"
-        value={urlInput}
-        onChangeText={setUrlInput}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <TouchableOpacity style={styles.btn} onPress={handleManual}>
-        <Text style={styles.btnText}>Analyze</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          activeOpacity={0.8}
+          onPress={handlePickImage}
+        >
+          <Text style={styles.secondaryBtnText}>CHOOSE IMAGE</Text>
+        </TouchableOpacity>
 
-      {/* Result */}
-      <Modal visible={showModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Scanned URL:</Text>
-            <Text style={styles.modalUrl} numberOfLines={3}>
-              {result?.original_url || scannedUrl || '—'}
-            </Text>
-
-            {loading && (
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
-                <ActivityIndicator size="large" color="#2563eb" />
-                <Text style={{ marginTop: 8, color: '#64748b' }}>Analyzing...</Text>
-              </View>
-            )}
-
-            {!loading && result?.error && (
-              <Text style={styles.errorText}>{result.error}</Text>
-            )}
-
-            {!loading && result && !result.error && result.verdict && (
-              <>
-                <View style={[
-                  styles.verdictBox,
-                  { backgroundColor: result.verdict === 'malicious' ? '#fee2e2' : '#d1fae5' },
-                ]}>
-                  <Text style={[
-                    styles.verdictText,
-                    { color: result.verdict === 'malicious' ? '#b91c1c' : '#047857' },
-                  ]}>
-                    {result.verdict === 'malicious' ? '🚨 DANGEROUS' : '✅ SAFE'}
-                  </Text>
-                  <Text style={styles.verdictScore}>
-                    Risk Score: {result.heuristics?.score ?? 0}/100
-                  </Text>
-                </View>
-
-                {result.heuristics?.triggered_features?.length > 0 && (
-                  <View style={styles.features}>
-                    <Text style={styles.featuresTitle}>Triggered indicators:</Text>
-                    {result.heuristics.triggered_features.map((f: string, i: number) => (
-                      <Text key={i} style={styles.featureItem}>• {f}</Text>
-                    ))}
-                  </View>
-                )}
-
-                {result.redirect?.hop_count > 0 && (
-                  <View style={styles.features}>
-                    <Text style={styles.featuresTitle}>
-                      Redirects: {result.redirect.hop_count}
-                    </Text>
-                  </View>
-                )}
-              </>
-            )}
-
-            <TouchableOpacity style={styles.closeBtn} onPress={closeModal}>
-              <Text style={styles.closeBtnText}>Close</Text>
+        <View style={styles.urlBlock}>
+          <View style={styles.labelRow}>
+            <View style={styles.labelTick} />
+            <Text style={monoLabel}>OR PASTE URL</Text>
+          </View>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              placeholder="https://example.com"
+              placeholderTextColor={theme.textMuted}
+              value={urlInput}
+              onChangeText={setUrlInput}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="go"
+              onSubmitEditing={handleManual}
+            />
+            <TouchableOpacity style={styles.arrowBtn} activeOpacity={0.8} onPress={handleManual}>
+              <Arrow size={18} />
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+
+        {/* Result */}
+        <Modal visible={showModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={monoLabel}>TARGET</Text>
+              <Text style={styles.modalUrl} numberOfLines={3}>
+                {result?.original_url || scannedUrl || '—'}
+              </Text>
+
+              {loading && (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color={theme.accent} />
+                  <Text style={styles.loadingText}>ANALYZING...</Text>
+                </View>
+              )}
+
+              {!loading && result?.error && (
+                <Text style={styles.errorText}>{result.error}</Text>
+              )}
+
+              {!loading && result && !result.error && result.verdict && (
+                <>
+                  <View
+                    style={[
+                      styles.verdictBox,
+                      {
+                        borderColor:
+                          result.verdict === 'malicious' ? theme.dangerLine : theme.safeLine,
+                        backgroundColor:
+                          result.verdict === 'malicious' ? theme.dangerSoft : theme.safeSoft,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.verdictBar,
+                        {
+                          backgroundColor:
+                            result.verdict === 'malicious' ? theme.danger : theme.safe,
+                        },
+                      ]}
+                    />
+                    <View style={styles.verdictInner}>
+                      <Text
+                        style={[
+                          styles.verdictText,
+                          {
+                            color:
+                              result.verdict === 'malicious' ? theme.danger : theme.safe,
+                          },
+                        ]}
+                      >
+                        {result.verdict === 'malicious' ? 'DANGEROUS' : 'SAFE'}
+                      </Text>
+                      <Text style={styles.verdictScore}>
+                        RISK SCORE: {result.heuristics?.score ?? 0}/100
+                      </Text>
+                    </View>
+                  </View>
+
+                  {result.heuristics?.triggered_features?.length > 0 && (
+                    <View style={styles.features}>
+                      <Text style={styles.featuresTitle}>Triggered indicators</Text>
+                      {result.heuristics.triggered_features.map((f: string, i: number) => (
+                        <Text key={i} style={styles.featureItem}>— {f}</Text>
+                      ))}
+                    </View>
+                  )}
+
+                  {result.redirect?.hop_count > 0 && (
+                    <View style={styles.features}>
+                      <Text style={styles.featuresTitle}>
+                        Redirects: {result.redirect.hop_count}
+                      </Text>
+                    </View>
+                  )}
+
+                  {result.virustotal && (
+                    <View style={styles.features}>
+                      <Text style={styles.featuresTitle}>VirusTotal</Text>
+                     
+                      {result.virustotal.total_engines > 0 ? (
+                        <>
+                          <Text style={styles.featureItem}>
+                            Malicious: {result.virustotal.malicious} / {result.virustotal.total_engines}
+                          </Text>
+                          <Text style={styles.featureItem}>
+                            Suspicious: {result.virustotal.suspicious}
+                          </Text>
+                          <Text style={styles.featureItem}>
+                            Harmless: {result.virustotal.harmless}
+                          </Text>
+                          <Text style={styles.featureItem}>
+                            Undetected: {result.virustotal.undetected}
+                          </Text>
+                          <Text style={styles.featureItem}>
+                            Flagged: {result.virustotal.is_flagged ? 'Yes' : 'No'}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={styles.featureItem}>
+                          {result.virustotal.note || 'No engines reported'}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+
+              <TouchableOpacity style={styles.closeBtn} activeOpacity={0.8} onPress={closeModal}>
+                <Text style={styles.closeBtnText}>CLOSE</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </View>
   );
 }

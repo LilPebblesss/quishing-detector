@@ -8,6 +8,7 @@ Start: uvicorn api:app --reload --port 8000
 """
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import heuristics
@@ -19,6 +20,14 @@ app = FastAPI(
     title="Quishing Detector API",
     description="Backend for the Quishing Detector project — analyzes URLs and QR codes for phishing risks.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

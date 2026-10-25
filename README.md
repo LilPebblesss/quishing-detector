@@ -57,10 +57,10 @@ source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Optional — set a VirusTotal API key:
+Optional - set a VirusTotal API key:
 
 ```bash
-export VIRUSTOTAL_API_KEY="your_key_here"
+export VIRUSTOTAL_API_KEY="api_key"
 ```
 
 Start the server:
@@ -119,10 +119,10 @@ If a `VIRUSTOTAL_API_KEY` is provided, each URL is checked against 90+ antivirus
 
 | URL | Expected result |
 |---|---|
-| `http://192.168.1.1/login` | DANGEROUS |
-| `http://paypa1-secure.com/login?verify=1` | DANGEROUS |
-| `https://accounts.google.com.verify-secure-login.xyz/reset` | DANGEROUS |
-| `https://www.google.com` | SAFE |
+| `http://192.168.1.1/login` | Dangerous |
+| `http://paypa1-secure.com/login?verify=1` | Dangerous |
+| `https://accounts.google.com.verify-secure-login.xyz/reset` | Dangerous |
+| `https://www.google.com` | Safe |
 
 ## Limitations
 
@@ -138,6 +138,3 @@ If a `VIRUSTOTAL_API_KEY` is provided, each URL is checked against 90+ antivirus
 
 **Mobile:** React Native, Expo, expo-camera, expo-image-picker, axios, TypeScript
 
-## License
-
-MIT

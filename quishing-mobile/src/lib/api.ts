@@ -8,7 +8,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
 
 const client = axios.create({
   baseURL: API_URL,
-  timeout: 20000,
+  timeout: 60000,
 });
 
 export async function analyzeUrl(url: string) {
@@ -30,8 +30,7 @@ export async function analyzeQrImage(imageUri: string, offline = false) {
 
   const response = await client.post('/analyze-qr', formData, {
     params: { offline },
-    headers: { 'Content-Type': 'multipart/form-data' },
+    // Let axios set the correct multipart boundary in React Native
   });
-
   return response.data;
 }
