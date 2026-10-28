@@ -37,9 +37,9 @@ export default function HomeScreen() {
       const res = await analyzeUrl(url);
       setResult(res);
      } catch (err: any) {
-      const isTimeout = err?.code === 'ECONNABORTED';
+      const isTimeout = err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
       setResult({
-        error: 'Error: ' + (isTimeout ? 'the server took too long to respond.' : err.message || 'request failed'),
+        error: 'Error: ' + (isTimeout ? 'server took too long to respond. Make sure backend is running on ' + (process.env.EXPO_PUBLIC_API_URL || 'LAN') : err.message || 'request failed'),
       });
     }
     setLoading(false);
@@ -77,9 +77,9 @@ export default function HomeScreen() {
         setResult(res);
       }
     } catch (err: any) {
-      const isTimeout = err?.code === 'ECONNABORTED';
+      const isTimeout = err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
       setResult({
-        error: 'Error: ' + (isTimeout ? 'the server took too long to respond.' : err.message || 'upload failed'),
+        error: 'Error: ' + (isTimeout ? 'server took too long to respond. Make sure backend is running on ' + (process.env.EXPO_PUBLIC_API_URL || 'LAN') : err.message || 'upload failed'),
       });
     }
     setLoading(false);

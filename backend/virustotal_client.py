@@ -18,10 +18,10 @@ from dotenv import load_dotenv
 
 VT_BASE_URL = "https://www.virustotal.com/api/v3/urls"
 VT_ANALYSES_URL = "https://www.virustotal.com/api/v3/analyses"
-REQUEST_TIMEOUT = 8
-SUBMIT_TIMEOUT = 15
-MAX_POLL_ATTEMPTS = 10
-POLL_INTERVAL = 3
+REQUEST_TIMEOUT = 3
+SUBMIT_TIMEOUT = 5
+MAX_POLL_ATTEMPTS = 1
+POLL_INTERVAL = 1
 
 # Load environment variables from .env if present
 load_dotenv()

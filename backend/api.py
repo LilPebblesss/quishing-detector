@@ -15,6 +15,8 @@ import heuristics
 import virustotal_client
 from qr_handler import QRDecodeError, decode_qr_from_bytes
 from redirect_resolver import resolve_redirects
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI(
     title="Quishing Detector API",
@@ -29,6 +31,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+executor = ThreadPoolExecutor(max_workers=4)
 
 
 class AnalyzeRequest(BaseModel):
@@ -86,31 +90,49 @@ async def analyze_qr(file: UploadFile = File(...), offline: bool = False):
 
 def _run_full_analysis(url: str, offline: bool) -> dict:
     """General logic for full analysis — used by both endpoints."""
-    redirect_data = resolve_redirects(url)
-    final_url = redirect_data["final_url"]
+    try:
+        redirect_data = resolve_redirects(url)
+        final_url = redirect_data["final_url"]
 
-    heuristic_result = heuristics.analyze(final_url, redirect_data["hop_count"])
+        heuristic_result = heuristics.analyze(final_url, redirect_data["hop_count"])
 
-    if offline:
-        vt_result = virustotal_client.offline_fallback("Offline mode — VirusTotal skipped by choice.")
-    else:
-        vt_result = virustotal_client.check_url(final_url)
+        if offline:
+            vt_result = virustotal_client.offline_fallback("Offline mode — VirusTotal skipped by choice.")
+        else:
+            vt_result = virustotal_client.check_url(final_url)
 
-    # If VirusTotal flags the URL, we add bonus points to the score
-    score = heuristic_result["score"]
-    if vt_result.get("is_flagged"):
-        score = min(score + 30, 100)
+        # If VirusTotal flags the URL, we add bonus points to the score
+        score = heuristic_result["score"]
+        if vt_result.get("is_flagged"):
+            score = min(score + 30, 100)
 
-    verdict = heuristics.classify(score)
+        verdict = heuristics.classify(score)
 
-    return {
-        "original_url": redirect_data["original_url"],
-        "final_url": final_url,
-        "redirect": redirect_data,
-        "heuristics": {
-            **heuristic_result,
-            "score": score,
-        },
-        "virustotal": vt_result,
-        "verdict": verdict,
-    }
+        return {
+            "original_url": redirect_data["original_url"],
+            "final_url": final_url,
+            "redirect": redirect_data,
+            "heuristics": {
+                **heuristic_result,
+                "score": score,
+            },
+            "virustotal": vt_result,
+            "verdict": verdict,
+        }
+    except Exception as e:
+        # Fallback to basic analysis if something goes wrong
+        try:
+            parsed = __import__('urllib.parse').urlparse(url)
+            heuristic_result = heuristics.analyze(url, 0)
+            score = heuristic_result["score"]
+            verdict = heuristics.classify(score)
+            return {
+                "original_url": url,
+                "final_url": url,
+                "redirect": {"original_url": url, "hops": [], "final_url": url, "hop_count": 0, "used_shortener": False, "error": str(e)},
+                "heuristics": {**heuristic_result, "score": score},
+                "virustotal": virustotal_client.offline_fallback("Error during analysis — using heuristics only."),
+                "verdict": verdict,
+            }
+        except Exception:
+            raise HTTPException(status_code=500, detail="Analysis failed")

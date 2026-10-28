@@ -1,22 +1,20 @@
-// api.ts — requests to the Python backend
+
 import axios from 'axios';
 
-// Base URL of the FastAPI backend. Set EXPO_PUBLIC_API_URL in .env so you can
-// change networks without editing code. It must be the computer's LAN address
-// (not localhost) so the phone can reach it over WiFi.
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
 
 const client = axios.create({
   baseURL: API_URL,
-  timeout: 60000,
+  timeout: 60000, 
 });
 
 export async function analyzeUrl(url: string) {
-  const response = await client.post('/analyze', { url, offline: false });
+  const response = await client.post('/analyze', { url, offline: true });
   return response.data;
 }
 
-export async function analyzeQrImage(imageUri: string, offline = false) {
+export async function analyzeQrImage(imageUri: string, offline = true) {
   const filename = imageUri.split('/').pop() || 'qr.jpg';
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : 'image/jpeg';
@@ -30,7 +28,7 @@ export async function analyzeQrImage(imageUri: string, offline = false) {
 
   const response = await client.post('/analyze-qr', formData, {
     params: { offline },
-    // Let axios set the correct multipart boundary in React Native
+
   });
   return response.data;
 }

@@ -8,10 +8,10 @@ to reveal the final destination before the user visits it.
 import requests
 
 # Timeout for each HTTP request (in seconds)
-REQUEST_TIMEOUT = 6
+REQUEST_TIMEOUT = 2
 
 # Maximum number of steps, to avoid endless/too long chains
-MAX_HOPS = 15
+MAX_HOPS = 5
 
 # List of popular URL shorteners (also used later by the heuristic)
 KNOWN_SHORTENERS = {
