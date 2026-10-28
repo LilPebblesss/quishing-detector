@@ -27,24 +27,6 @@ The project consists of two parts:
 
 The mobile app sends the decoded URL to the backend. The backend analyzes it and returns a verdict. The mobile app displays the result.
 
-## Project structure
-
-```
-quishing-detector/
-├── backend/
-│   ├── api.py
-│   ├── heuristics.py
-│   ├── redirect_resolver.py
-│   ├── virustotal_client.py
-│   ├── qr_handler.py
-│   └── requirements.txt
-│
-└── quishing-mobile/
-    ├── src/
-    │   ├── app/          # index.tsx (main screen), _layout.tsx (header)
-    │   └── lib/          # api.ts (HTTP), styles.ts
-    └── package.json
-```
 
 ## Installation
 
