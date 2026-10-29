@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Base URL of the FastAPI backend. Set EXPO_PUBLIC_API_URL in .env so you can
 // change networks without editing code. It must be the computer's LAN address
 // (not localhost) so the phone can reach it over WiFi.
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
+const API_URL = 'https://quishing-detector-9x6e.onrender.com';
 
 const client = axios.create({
   baseURL: API_URL,
