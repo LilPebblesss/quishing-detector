@@ -2,6 +2,8 @@
 
 A mobile application that detects Quishing (QR code phishing) attacks before the user opens the link.
 
+Demo: https://qr-detector.onrender.com/
+
 ## Overview
 
 Quishing is a phishing technique that uses QR codes to redirect victims to malicious websites. Attackers place QR codes in emails, on physical stickers, or inside PDFs.
