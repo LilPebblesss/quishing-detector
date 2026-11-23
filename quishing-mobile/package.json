@@ -5,7 +5,9 @@
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo-google-fonts/press-start-2p": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.1",
+    "@expo-google-fonts/vt323": "^0.4.1",
     "axios": "^1.20.0",
     "expo": "~58.0.0",
     "expo-camera": "~58.0.12",

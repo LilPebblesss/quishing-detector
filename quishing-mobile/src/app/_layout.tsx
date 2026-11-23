@@ -4,20 +4,16 @@ import * as SystemUI from 'expo-system-ui';
 import { StatusBar } from 'expo-status-bar';
 // Deep imports: the package root statically requires every weight it ships
 // (~8 MB of TTFs), while only these weights are used by the UI.
-import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono/400Regular';
-import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono/500Medium';
-import { JetBrainsMono_600SemiBold } from '@expo-google-fonts/jetbrains-mono/600SemiBold';
-import { JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono/700Bold';
+import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p/400Regular';
+import { VT323_400Regular } from '@expo-google-fonts/vt323/400Regular';
 import { theme } from '../lib/styles';
 
 SystemUI.setBackgroundColorAsync(theme.bg);
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
-    JetBrainsMono_600SemiBold,
-    JetBrainsMono_700Bold,
+    PressStart2P_400Regular,
+    VT323_400Regular,
   });
 
   if (fontError) {

@@ -1,29 +1,29 @@
 import { StyleSheet } from 'react-native';
 
 export const theme = {
-  bg: '#0A192F',
-  surface: '#112240',
-  line: '#233554',
-  lineStrong: '#64FFDA',
+  bg: '#0a0a0a',
+  surface: '#0a0a0a',
+  line: '#e8e8e8',
+  lineStrong: '#e8e8e8',
 
-  accent: '#64FFDA',
-  accentSoft: 'rgba(100, 255, 218, 0.12)',
-  accentLine: 'rgba(100, 255, 218, 0.40)',
-  warning: '#64FFDA',
-  safe: '#00FF9D',
-  safeSoft: '#002B1C',
-  safeLine: 'rgba(0, 255, 157, 0.40)',
-  danger: '#FF4C4C',
-  dangerSoft: '#330000',
-  dangerLine: 'rgba(255, 76, 76, 0.40)',
+  accent: '#00f0ff',
+  accentSoft: 'rgba(0, 240, 255, 0.12)',
+  accentLine: 'rgba(0, 240, 255, 0.40)',
+  warning: '#00f0ff',
+  safe: '#00f0ff',
+  safeSoft: 'rgba(0, 240, 255, 0.10)',
+  safeLine: 'rgba(0, 240, 255, 0.40)',
+  danger: '#ff2a6d',
+  dangerSoft: 'rgba(255, 42, 109, 0.10)',
+  dangerLine: 'rgba(255, 42, 109, 0.40)',
 
-  text: '#E6F1FF',
-  textMuted: '#8892B0',
+  text: '#e8e8e8',
+  textMuted: '#8a8a8a',
 
-  fontSemi: 'JetBrainsMono_600SemiBold',
-  fontBold: 'JetBrainsMono_700Bold',
-  mono: 'JetBrainsMono_400Regular',
-  monoMedium: 'JetBrainsMono_500Medium',
+  fontSemi: 'PressStart2P_400Regular',
+  fontBold: 'PressStart2P_400Regular',
+  mono: 'VT323_400Regular',
+  monoMedium: 'VT323_400Regular',
 } as const;
 
 export const monoLabel = {
