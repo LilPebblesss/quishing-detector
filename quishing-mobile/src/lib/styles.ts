@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   brand: { marginLeft: 12, fontFamily: theme.fontBold, fontSize: 12, letterSpacing: 2.4, color: theme.accent, lineHeight: 20 },
 
-  heroFrame: { width: '100%', height: 240, marginTop: 12, overflow: 'hidden', position: 'relative' },
+  heroFrame: { width: '100%', flex: 1, minHeight: 240, maxHeight: 380, marginTop: 12, overflow: 'hidden', position: 'relative' },
   heroTitle: { fontFamily: theme.fontBold, fontSize: 22, lineHeight: 35.2, color: theme.text, textAlign: 'left' },
   heroGlow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, boxShadow: '0px 0px 10px 0px rgba(100, 255, 218, 0.30)', zIndex: 1 },
 
