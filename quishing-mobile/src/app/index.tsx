@@ -154,17 +154,28 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <QrLogo size={28} />
-          <Text style={styles.brand}>QUISHING DETECTOR</Text>
         </View>
 
-<View>
-          <Text style={styles.heroTitle}>
-            QUISHING{'\n'}DETECTOR{cursorVisible ? <Text style={{ color: theme.pink }}>_</Text> : null}
-          </Text>
-        </View>
-
-        <View style={styles.heroFrame}>
+<View style={styles.heroFrame}>
           <ScanFrame />
+          <View style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
+            <QrLogo size={28} />
+          </View>
+          <View style={{ position: 'absolute', top: 24, left: 24, zIndex: 2 }}>
+            <Text style={styles.heroTitle}>
+              QUISHING{'\n'}DETECTOR{cursorVisible ? <Text style={{ color: theme.pink }}>_</Text> : null}
+            </Text>
+          </View>
+          {/* pixels */}
+          {[
+            {l:200,t:20,s:8,o:0.9,c:theme.pink},
+            {l:260,t:60,s:12,o:0.7,c:theme.accent},
+            {l:180,t:120,s:16,o:0.5,c:theme.text},
+            {l:290,t:150,s:24,o:0.3,c:theme.pink},
+            {l:220,t:190,s:48,o:0.15,c:theme.accent},
+          ].map((p,i)=>(
+            <View key={i} style={{position:'absolute',left:p.l,top:p.t,width:p.s,height:p.s,backgroundColor:p.c,opacity:p.o,zIndex:1}} pointerEvents="none" />
+          ))}
         </View>
 
         <TouchableOpacity
@@ -175,7 +186,7 @@ export default function HomeScreen() {
             setScanning(true);
           }}
         >
-          <Text style={styles.primaryBtnText}>[ INITIATE SCAN ]</Text>
+          <Text style={styles.primaryBtnText}>{'> '}INITIATE SCAN</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -183,7 +194,7 @@ export default function HomeScreen() {
           activeOpacity={0.8}
           onPress={handlePickImage}
         >
-          <Text style={styles.secondaryBtnText}>[ CHOOSE IMAGE ]</Text>
+          <Text style={styles.secondaryBtnText}>{'> '}CHOOSE IMAGE</Text>
         </TouchableOpacity>
 
         <View style={styles.urlBlock}>
@@ -320,7 +331,7 @@ export default function HomeScreen() {
               )}
 
               <TouchableOpacity style={styles.closeBtn} activeOpacity={0.8} onPress={closeModal}>
-                <Text style={styles.closeBtnText}>[ CLOSE ]</Text>
+                <Text style={styles.closeBtnText}>{'> '}CLOSE</Text>
               </TouchableOpacity>
             </View>
           </View>

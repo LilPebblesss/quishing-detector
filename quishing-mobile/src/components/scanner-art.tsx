@@ -80,8 +80,6 @@ function Brackets() {
 export function ScanFrame() {
   return (
     <View style={frame}>
-      <Grid />
-      <View style={[{ position: 'absolute', left: 0, right: 0, top: '34%', height: 1, backgroundColor: theme.accentLine }, inert]} />
       <Brackets />
     </View>
   );
