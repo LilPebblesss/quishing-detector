@@ -145,11 +145,8 @@ export default function HomeScreen() {
   // --- Home screen ---
   return (
     <View style={styles.screen}>
-      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, gap: 24, backgroundColor: theme.bg }}>
-        <View style={styles.header}>
-        </View>
-
-<View style={styles.heroFrame}>
+<View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, gap: 24, backgroundColor: theme.bg }}>
+        <View style={styles.heroFrame}>
           <ScanFrame />
           <View style={{ position: 'absolute', top: 16, left: 16, zIndex: 3 }}>
             <QrLogo size={28} />
@@ -159,29 +156,6 @@ export default function HomeScreen() {
               QUISHING{'\n'}DETECTOR{cursorVisible ? <Text style={{ color: theme.pink }}>_</Text> : null}
             </Text>
           </View>
-          {/* pixels */}
-          {[
-            {l:10,t:10,s:8,o:0.9,c:theme.pink},
-            {l:280,t:8,s:12,o:0.8,c:theme.accent},
-            {l:150,t:5,s:10,o:0.85,c:theme.text},
-            {l:5,t:100,s:16,o:0.5,c:theme.accent},
-            {l:300,t:120,s:20,o:0.4,c:theme.pink},
-            {l:20,t:200,s:24,o:0.3,c:theme.text},
-            {l:260,t:210,s:48,o:0.15,c:theme.accent},
-            {l:120,t:220,s:8,o:0.9,c:theme.pink},
-            {l:80,t:10,s:14,o:0.7,c:theme.accent},
-            {l:200,t:230,s:10,o:0.8,c:theme.text},
-            {l:310,t:60,s:18,o:0.45,c:theme.pink},
-            {l:0,t:160,s:12,o:0.75,c:theme.accent},
-            {l:240,t:0,s:9,o:0.85,c:theme.text},
-            {l:60,t:180,s:32,o:0.2,c:theme.pink},
-            {l:140,t:90,s:8,o:0.9,c:theme.accent},
-            {l:270,t:170,s:14,o:0.6,c:theme.text},
-            {l:40,t:40,s:22,o:0.35,c:theme.pink},
-            {l:190,t:130,s:11,o:0.7,c:theme.accent},
-          ].map((p,i)=>(
-            <View key={i} style={{position:'absolute',left:`${p.l}%`,top:`${p.t}%`,width:p.s,height:p.s,backgroundColor:p.c,opacity:p.o,zIndex:1}} pointerEvents="none" />
-          ))}
         </View>
 
         <TouchableOpacity
