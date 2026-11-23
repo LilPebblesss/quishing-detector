@@ -48,8 +48,8 @@ export const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   brand: { marginLeft: 12, fontFamily: theme.fontBold, fontSize: 12, letterSpacing: 2.4, color: theme.accent, lineHeight: 20 },
 
-  heroFrame: { width: '100%', flex: 1, minHeight: 240, maxHeight: 380, marginTop: 12, overflow: 'hidden', position: 'relative' },
-  heroTitle: { fontFamily: theme.fontBold, fontSize: 22, lineHeight: 35.2, color: theme.text, textAlign: 'left' },
+  heroFrame: { width: '100%', flex: 1, minHeight: 240, marginTop: 12, overflow: 'hidden', position: 'relative', justifyContent: 'center', alignItems: 'center' },
+  heroTitle: { fontFamily: theme.fontBold, fontSize: 28, lineHeight: 44.8, color: theme.text, textAlign: 'center' },
   heroGlow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, boxShadow: '0px 0px 10px 0px rgba(100, 255, 218, 0.30)', zIndex: 1 },
 
   primaryBtn: { height: 58, marginTop: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.accent, borderWidth: theme.borderWidth, borderColor: '#ffffff', boxShadow: '6px 6px 0px 0px #ff2a6d', zIndex: 2 },

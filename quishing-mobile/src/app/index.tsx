@@ -145,22 +145,16 @@ export default function HomeScreen() {
   // --- Home screen ---
   return (
     <View style={styles.screen}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, gap: 24, backgroundColor: theme.bg }}>
         <View style={styles.header}>
         </View>
 
 <View style={styles.heroFrame}>
           <ScanFrame />
-          <View style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
+          <View style={{ position: 'absolute', top: 16, left: 16, zIndex: 3 }}>
             <QrLogo size={28} />
           </View>
-          <View style={{ position: 'absolute', top: 48, left: 24, zIndex: 2 }}>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
             <Text style={styles.heroTitle}>
               QUISHING{'\n'}DETECTOR{cursorVisible ? <Text style={{ color: theme.pink }}>_</Text> : null}
             </Text>
@@ -186,7 +180,7 @@ export default function HomeScreen() {
             {l:40,t:40,s:22,o:0.35,c:theme.pink},
             {l:190,t:130,s:11,o:0.7,c:theme.accent},
           ].map((p,i)=>(
-            <View key={i} style={{position:'absolute',left:p.l,top:p.t,width:p.s,height:p.s,backgroundColor:p.c,opacity:p.o,zIndex:1}} pointerEvents="none" />
+            <View key={i} style={{position:'absolute',left:`${p.l}%`,top:`${p.t}%`,width:p.s,height:p.s,backgroundColor:p.c,opacity:p.o,zIndex:1}} pointerEvents="none" />
           ))}
         </View>
 
@@ -348,7 +342,7 @@ export default function HomeScreen() {
             </View>
           </View>
         </Modal>
-      </ScrollView>
+      </View>
     </View>
   );
 }
