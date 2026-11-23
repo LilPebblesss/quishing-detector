@@ -7,7 +7,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { analyzeUrl, analyzeQrImage } from '../lib/api';
-import { monoLabel, styles, theme } from '../lib/styles';
+import { styles, theme, pixelLabel } from '../lib/styles';
 import { Arrow, QrLogo, ScanFrame } from '../components/scanner-art';
 
 export default function HomeScreen() {
@@ -170,7 +170,7 @@ export default function HomeScreen() {
         <View style={styles.urlBlock}>
           <View style={styles.labelRow}>
             <View style={styles.labelTick} />
-            <Text style={monoLabel}>{'> '}OR PASTE URL</Text>
+            <Text style={pixelLabel}>{'> '}OR PASTE URL</Text>
           </View>
           <View style={styles.inputRow}>
             <TextInput
@@ -194,8 +194,8 @@ export default function HomeScreen() {
         <Modal visible={showModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-<Text style={monoLabel}>TARGET_URL</Text>
-              <Text style={styles.modalUrl} numberOfLines={3}>
+<Text style={pixelLabel}>TARGET_URL</Text>
+              <Text style={styles.modalUrl}>
                 {result?.original_url || scannedUrl || '—'}
               </Text>
 
@@ -233,19 +233,20 @@ export default function HomeScreen() {
                       ]}
                     />
                     <View style={styles.verdictInner}>
+                      <Text style={styles.verdictLabel}>SCAN_STATUS</Text>
                       <Text
                         style={[
                           styles.verdictText,
                           {
                             color:
-                              result.verdict === 'malicious' ? theme.danger : theme.safe,
+                              result.verdict === 'malicious' || result.verdict === 'suspicious' ? theme.danger : theme.safe,
                           },
                         ]}
                       >
-                        {result.verdict === 'malicious' ? '> SCAN_STATUS: [ DANGER ]' : '> SCAN_STATUS: [ SAFE ]'}
+                        {result.verdict === 'malicious' || result.verdict === 'suspicious' ? '[ SUSPICIOUS ]' : '[ SAFE ]'}
                       </Text>
                       <Text style={styles.verdictScore}>
-                        {'> THREAT_LEVEL: '}{result.heuristics?.score ?? 0}/100
+                        {'THREAT_LEVEL: '}{result.heuristics?.score ?? 0}/100
                       </Text>
                     </View>
                   </View>
