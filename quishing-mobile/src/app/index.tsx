@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
   ActivityIndicator, TextInput, ScrollView, Alert,
@@ -19,6 +19,19 @@ export default function HomeScreen() {
   const [scannedUrl, setScannedUrl] = useState('');
   const [result, setResult] = useState<any>(null);
   const [urlInput, setUrlInput] = useState('');
+  const [cursorVisible, setCursorVisible] = useState(true);
+  useEffect(() => {
+    let reduce = false;
+    (async () => {
+      try {
+        const r = await (require('react-native').AccessibilityInfo?.isReduceMotionEnabled?.());
+        reduce = !!r;
+      } catch {}
+      if (reduce) { setCursorVisible(true); return; }
+      const id = setInterval(() => setCursorVisible(v => !v), 500);
+      return () => clearInterval(id);
+    })();
+  }, []);
 
   // Scanned QR code
   const handleBarcodeScanned = ({ data }: { data: string }) => {
@@ -142,6 +155,12 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <QrLogo size={28} />
           <Text style={styles.brand}>QUISHING DETECTOR</Text>
+        </View>
+
+<View>
+          <Text style={styles.heroTitle}>
+            QUISHING{'\n'}DETECTOR{cursorVisible ? <Text style={{ color: theme.pink }}>_</Text> : null}
+          </Text>
         </View>
 
         <View style={styles.heroFrame}>
