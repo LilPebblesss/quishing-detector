@@ -101,7 +101,7 @@ export default function HomeScreen() {
             Camera permission is required{'\n'}to scan QR codes.
           </Text>
           <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
-            <Text style={styles.permBtnText}>ALLOW CAMERA</Text>
+            <Text style={styles.permBtnText}>[ ALLOW CAMERA ]</Text>
           </TouchableOpacity>
         </View>
       );
@@ -156,7 +156,7 @@ export default function HomeScreen() {
             setScanning(true);
           }}
         >
-          <Text style={styles.primaryBtnText}>SCAN QR CODE</Text>
+          <Text style={styles.primaryBtnText}>[ INITIATE SCAN ]</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -164,13 +164,13 @@ export default function HomeScreen() {
           activeOpacity={0.8}
           onPress={handlePickImage}
         >
-          <Text style={styles.secondaryBtnText}>CHOOSE IMAGE</Text>
+          <Text style={styles.secondaryBtnText}>[ CHOOSE IMAGE ]</Text>
         </TouchableOpacity>
 
         <View style={styles.urlBlock}>
           <View style={styles.labelRow}>
             <View style={styles.labelTick} />
-            <Text style={monoLabel}>OR PASTE URL</Text>
+            <Text style={monoLabel}>{'> '}OR PASTE URL</Text>
           </View>
           <View style={styles.inputRow}>
             <TextInput
@@ -194,7 +194,7 @@ export default function HomeScreen() {
         <Modal visible={showModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={monoLabel}>TARGET</Text>
+<Text style={monoLabel}>TARGET_URL</Text>
               <Text style={styles.modalUrl} numberOfLines={3}>
                 {result?.original_url || scannedUrl || '—'}
               </Text>
@@ -242,10 +242,10 @@ export default function HomeScreen() {
                           },
                         ]}
                       >
-                        {result.verdict === 'malicious' ? 'DANGEROUS' : 'SAFE'}
+                        {result.verdict === 'malicious' ? '> SCAN_STATUS: [ DANGER ]' : '> SCAN_STATUS: [ SAFE ]'}
                       </Text>
                       <Text style={styles.verdictScore}>
-                        RISK SCORE: {result.heuristics?.score ?? 0}/100
+                        {'> THREAT_LEVEL: '}{result.heuristics?.score ?? 0}/100
                       </Text>
                     </View>
                   </View>
@@ -300,7 +300,7 @@ export default function HomeScreen() {
               )}
 
               <TouchableOpacity style={styles.closeBtn} activeOpacity={0.8} onPress={closeModal}>
-                <Text style={styles.closeBtnText}>CLOSE</Text>
+                <Text style={styles.closeBtnText}>[ CLOSE ]</Text>
               </TouchableOpacity>
             </View>
           </View>
